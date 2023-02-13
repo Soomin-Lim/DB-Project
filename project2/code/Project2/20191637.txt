@@ -1,0 +1,691 @@
+create table customer(
+customer_ID	integer primary key not null check (customer_ID > 0),
+name	varchar(20) not null,
+phone_number	varchar(20),
+online_id	varchar(20)
+);
+
+create table online_subscription (
+online_id varchar(20) PRIMARY KEY not null,
+customer_ID integer not null check (customer_ID > 0),
+online_password varchar(20) not null,
+online_sign_up_date	date not null,
+email	varchar(20),
+address	varchar(20),
+birth_date	date,
+foreign key (customer_ID) references customer (customer_ID) on delete cascade
+);
+
+create table card(
+card_number	varchar(20) not null,
+card_company	varchar(20) not null,
+customer_ID	integer not null check (customer_ID > 0),
+expiry_date	date not null,
+primary key (card_number, card_company),
+foreign key (customer_ID) references customer (customer_ID) on delete cascade
+);
+
+create table bank_account(
+account_number	varchar(20) not null,
+bank_name	varchar(20) not null,
+customer_ID	integer not null check (customer_ID > 0),
+account_name	varchar(20) not null,
+balance	integer	not null check (balance >= 0),
+primary key (account_number, bank_name),
+foreign key (customer_ID) references customer (customer_ID) on delete cascade
+);
+
+create table purchase(
+order_date	date not null,
+order_ID	integer not null check (order_ID > 0),
+customer_ID	integer not null check (customer_ID > 0),
+total_price	integer not null check (total_price >= 0),
+primary key (order_date, order_ID, customer_ID),
+foreign key (customer_ID) references customer (customer_ID) on delete cascade
+);
+
+create table contract_of_payment(
+account_number	varchar(20) not null,
+bank_name	varchar(20) not null,
+order_date	date not null,
+order_ID	integer not null check (order_ID > 0),
+customer_ID	integer not null check (customer_ID > 0),
+foreign key (account_number, bank_name) references bank_account (account_number, bank_name) on delete cascade,
+primary key (account_number, bank_name, order_date, order_ID, customer_ID),
+foreign key (order_date, order_ID, customer_ID) references purchase (order_date, order_ID, customer_ID) on delete cascade
+);
+
+create table bill(
+bill_number	integer not null,
+account_number	varchar(20) not null,
+bank_name	varchar(20) not null,
+order_date	date not null,
+order_ID	integer not null check (order_ID > 0),
+customer_ID	integer not null check (customer_ID > 0),
+bill_date	date not null,
+due_date	date not null,
+monthly_charge	integer not null check (monthly_charge >= 0),
+total_charge	integer not null check (total_charge >= 0),
+primary key (bill_number, account_number, bank_name, order_date, order_ID, customer_ID),
+foreign key (account_number, bank_name, order_date, order_ID, customer_ID) references contract_of_payment (account_number, bank_name, order_date, order_ID, customer_ID) on delete cascade
+);
+
+create table shipping_company(
+company_name	varchar(20) primary key not null,
+email	varchar(20),
+phone_number	varchar(20),
+address	varchar(20)
+);
+
+create table delivery(
+tracking_number	varchar(20) not null, 
+company_name	varchar(20) not null,
+order_date	date not null,
+order_ID	integer not null check (order_ID > 0),
+customer_ID	integer not null check (customer_ID > 0),
+sending_date	date not null,
+promised_delivery_date	date not null,
+delivery_date date,
+delivery_address	varchar(20) not null,
+completed	integer not null check (completed in (0, 1, 2, 3)),
+issue	varchar(20),
+shipper_name	varchar(20),
+primary key (tracking_number, company_name),
+foreign key (company_name) references shipping_company (company_name) on delete cascade,
+foreign key (order_date, order_ID, customer_ID) references purchase (order_date, order_ID, customer_ID) on delete cascade
+);
+
+
+create table product_type(
+type	varchar(20) primary key not null
+);
+
+create table manufacturer(
+manufacturer_name	varchar(20) primary key not null,
+email	varchar(20),
+phone_number	varchar(20),
+address	varchar(20)
+);
+
+create table product(
+product_ID	integer not null check (product_ID > 0),
+manufacturer_name	varchar(20) not null,
+type	varchar(20) not null,
+product_name	varchar(20) not null,
+model	varchar(20),
+price	integer not null check (price >= 0),
+primary key (product_ID, manufacturer_name),
+foreign key (manufacturer_name) references manufacturer (manufacturer_name) on delete cascade,
+foreign key (type) references product_type (type) on delete cascade
+);
+
+create table store(
+store_ID	integer not null check (store_ID > 0),
+region	varchar(20) not null,
+owner	varchar(20),
+phone_number	varchar(20),
+address	varchar(20),
+opening_date date,
+primary key (store_ID, region)
+);
+
+create table warehouse(
+warehouse_ID	integer not null check (warehouse_ID > 0),
+manager	varchar(20),
+phone_number	varchar(20),
+address	varchar(20),
+primary key (warehouse_ID)
+);
+
+create table offline_inventory(
+store_ID	integer not null check (store_ID > 0),
+region	varchar(20) not null,
+product_ID	integer not null check (product_ID > 0),
+manufacturer_name	varchar(20) not null,
+stock	integer not null check (stock >= 0),
+primary key (store_ID, region, product_ID, manufacturer_name),
+foreign key (store_ID, region) references store (store_ID, region) on delete cascade,
+foreign key (product_ID, manufacturer_name) references product (product_ID, manufacturer_name) on delete cascade
+);
+
+create table online_inventory(
+warehouse_ID	integer not null check (warehouse_ID > 0),
+product_ID	integer not null check (product_ID > 0),
+manufacturer_name	varchar(20) not null,
+stock	integer not null check (stock >= 0),
+primary key (warehouse_ID, product_ID, manufacturer_name),
+foreign key (warehouse_ID) references warehouse (warehouse_ID) on delete cascade,
+foreign key (product_ID, manufacturer_name) references product (product_ID, manufacturer_name) on delete cascade
+);
+
+create table sales_data(
+sales_ID	integer not null check (sales_ID > 0),
+order_date	date not null,
+order_ID	integer not null check (order_ID > 0),
+customer_ID	integer not null check (customer_ID > 0),
+product_ID	integer not null check (product_ID > 0),
+manufacturer_name	varchar(20) not null,
+total_amount integer not null check (total_amount >= 0),
+total_sales	integer not null check (total_sales >= 0),
+warehouse_ID	integer,
+store_ID	integer,
+region	varchar(20),
+primary key (sales_ID),
+foreign key (order_date, order_ID, customer_ID) references purchase (order_date, order_ID, customer_ID) on delete cascade,
+foreign key (product_ID, manufacturer_name) references product (product_ID, manufacturer_name) on delete cascade,
+foreign key (warehouse_ID) references warehouse (warehouse_ID) on delete set null,
+foreign key (store_ID, region) references store (store_ID, region) on delete set null
+);
+
+create table online_reorder(
+reorder_ID	integer not null check (reorder_ID > 0),
+warehouse_ID	integer not null check (warehouse_ID > 0),
+product_ID	integer not null check (product_ID > 0),
+manufacturer_name	varchar(20) not null,
+quantity	integer not null check (quantity >= 0),
+reorder_date	date not null,
+promised_arrival_date	date not null,
+arrival_date	date,
+completed	integer not null check (completed in (0, 1, 2, 3)),
+issue	varchar(20),
+primary key (reorder_ID, warehouse_ID, product_ID, manufacturer_name),
+foreign key (warehouse_ID, product_ID, manufacturer_name) references online_inventory (warehouse_ID, product_ID, manufacturer_name) on delete cascade
+);
+
+create table offline_reorder(
+reorder_ID	integer not null check (reorder_ID > 0),
+store_ID	integer not null check (store_ID > 0),
+region	varchar(20) not null,
+product_ID	integer not null check (product_ID > 0),
+manufacturer_name	varchar(20) not null,
+quantity	integer not null check (quantity >= 0),
+reorder_date	date not null,
+promised_arrival_date	date not null,
+arrival_date	date,
+completed	integer not null check (completed in (0, 1, 2, 3)),
+issue	varchar(20),
+primary key (reorder_ID, store_ID, region, product_ID, manufacturer_name),
+foreign key (store_ID, region, product_ID, manufacturer_name) references offline_inventory (store_ID, region, product_ID, manufacturer_name) on delete cascade
+);
+
+insert into customer values (1, 'Zhang', '010-1111-2222', 'aaaaa');
+insert into customer values (2, 'Shankar', '010-2222-3333', 'bbbbb');
+insert into customer values (3, 'Brandt', '010-3333-4444', 'ccccc');
+insert into customer values (4, 'Chavez', '010-4444-5555', 'ddddd');
+insert into customer values (5, 'Peltier', '010-5555-6666', 'eeeee');
+insert into customer values (6, 'Levy', '010-6666-7777', 'fffff');
+insert into customer values (7, 'Williams', '010-7777-8888', 'ggggg');
+insert into customer values (8, 'Sanchez', '010-8888-9999', 'hhhhh');
+insert into customer values (9, 'Snow', '010-9999-1010', 'iiiii');
+insert into customer values (10, 'Aoi', '010-1010-1111', 'jjjjj');
+insert into customer values (11, 'Bourikas', '010-1111-1212', 'kkkkk');
+insert into customer values (12, 'Tanaka', '010-1212-1313', 'lllll');
+insert into customer values (13, 'Srinivasan', '010-1313-1414', 'mmmmm');
+insert into customer values (14, 'Wu', '010-1414-1515', 'nnnnn');
+insert into customer values (15, 'Gold', '010-1515-1616', 'ooooo');
+insert into customer (customer_ID, name, phone_number) values (16, 'Katz', '010-1616-1717');
+insert into customer (customer_ID, name, phone_number) values (17, 'Califieri', '010-1717-1818');
+insert into customer (customer_ID, name, phone_number) values (18, 'Singh', '010-1818-1919');
+insert into customer (customer_ID, name, phone_number) values (19, 'Crick', '010-1919-2020');
+
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('aaaaa', 1, 'AAAAA', '2000-01-01');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('bbbbb', 2, 'BBBBB', '2000-01-02');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('ccccc', 3, 'CCCCC', '2000-01-03');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('ddddd', 4, 'DDDDD', '2000-01-04');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('eeeee', 5, 'EEEEE', '2000-01-05');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('fffff', 6, 'FFFFF', '2000-01-06');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('ggggg', 7, 'GGGGG', '2000-01-07');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('hhhhh', 8, 'HHHHH', '2000-01-08');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('iiiii', 9, 'IIIII', '2000-01-09');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('jjjjj', 10, 'JJJJJ', '2000-01-10');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('kkkkk', 11, 'KKKKK', '2000-01-11');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('lllll', 12, 'LLLLL', '2000-01-12');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('mmmmm', 13, 'MMMMM', '2000-01-13');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('nnnnn', 14, 'NNNNN', '2000-01-14');
+insert into online_subscription (online_id, customer_ID, online_password, online_sign_up_date) values ('ooooo', 15, 'OOOOO', '2000-01-15');
+
+insert into card values ('11111', 'ABC', 1, '2023-01-01');
+insert into card values ('22222', 'ABC', 2, '2023-01-02');
+insert into card values ('33333', 'ABC', 3, '2023-01-03');
+insert into card values ('44444', 'ABC', 4, '2023-01-04');
+insert into card values ('55555', 'ABC', 5, '2023-01-05');
+insert into card values ('66666', 'ABC', 6, '2023-01-06');
+insert into card values ('77777', 'ABC', 7, '2023-01-07');
+insert into card values ('88888', 'ABC', 8, '2023-01-08');
+insert into card values ('99999', 'ABC', 9, '2023-01-09');
+insert into card values ('10101', 'ABC', 10, '2023-01-10');
+insert into card values ('10001', 'ABC', 11, '2023-01-11');
+insert into card values ('12121', 'ABC', 12, '2023-01-12');
+insert into card values ('13131', 'ABC', 13, '2023-01-13');
+insert into card values ('14141', 'ABC', 14, '2023-01-14');
+insert into card values ('15151', 'ABC', 15, '2023-01-15');
+
+insert into bank_account values ('11111', 'SSS', 1, 'bankbook', 1000000);
+insert into bank_account values ('22222', 'SSS', 2, 'bankbook', 1000000);
+insert into bank_account values ('33333', 'SSS', 3, 'bankbook', 1000000);
+insert into bank_account values ('44444', 'SSS', 4, 'bankbook', 1000000);
+insert into bank_account values ('55555', 'SSS', 5, 'bankbook', 1000000);
+insert into bank_account values ('66666', 'SSS', 6, 'bankbook', 1000000);
+insert into bank_account values ('77777', 'SSS', 7, 'bankbook', 1000000);
+insert into bank_account values ('88888', 'SSS', 8, 'bankbook', 1000000);
+insert into bank_account values ('99999', 'SSS', 9, 'bankbook', 1000000);
+insert into bank_account values ('10101', 'SSS', 10, 'bankbook', 1000000);
+insert into bank_account values ('10001', 'SSS', 11, 'bankbook', 1000000);
+insert into bank_account values ('12121', 'SSS', 12, 'bankbook', 1000000);
+insert into bank_account values ('13131', 'SSS', 13, 'bankbook', 1000000);
+insert into bank_account values ('14141', 'SSS', 14, 'bankbook', 1000000);
+insert into bank_account values ('15151', 'SSS', 15, 'bankbook', 1000000);
+insert into bank_account values ('16161', 'SSS', 16, 'bankbook', 1000000);
+insert into bank_account values ('17171', 'SSS', 17, 'bankbook', 1000000);
+insert into bank_account values ('18181', 'SSS', 18, 'bankbook', 1000000);
+insert into bank_account values ('19191', 'SSS', 19, 'bankbook', 1000000);
+
+insert into product_type values ('Cell Phones');
+insert into product_type values ('TV');
+insert into product_type values ('Computers');
+insert into product_type values ('Laptops');
+insert into product_type values ('Tablets');
+insert into product_type values ('Speakers');
+insert into product_type values ('Headphones');
+insert into product_type values ('Cameras');
+insert into product_type values ('Fitness');
+insert into product_type values ('Health');
+insert into product_type values ('Baby Care');
+insert into product_type values ('Kitchen Appliances');
+insert into product_type values ('Laundry');
+insert into product_type values ('Toys');
+insert into product_type values ('Video Games');
+
+insert into manufacturer (manufacturer_name) values ('Apple');
+insert into manufacturer (manufacturer_name) values ('Samsung');
+insert into manufacturer (manufacturer_name) values ('LG');
+insert into manufacturer (manufacturer_name) values ('Sony');
+insert into manufacturer (manufacturer_name) values ('Lenovo');
+insert into manufacturer (manufacturer_name) values ('HP');
+insert into manufacturer (manufacturer_name) values ('Sonos');
+insert into manufacturer (manufacturer_name) values ('Sonance');
+insert into manufacturer (manufacturer_name) values ('Beats by Dr. Dre');
+insert into manufacturer (manufacturer_name) values ('Canon');
+insert into manufacturer (manufacturer_name) values ('Bowflex');
+insert into manufacturer (manufacturer_name) values ('Omron');
+insert into manufacturer (manufacturer_name) values ('Owlet');
+insert into manufacturer (manufacturer_name) values ('Bella');
+insert into manufacturer (manufacturer_name) values ('Lego');
+insert into manufacturer (manufacturer_name) values ('Nintendo');
+
+insert into product values (1, 'Apple', 'Cell Phones', 'iPhone 13', null, 100);
+insert into product values (2, 'Apple', 'Cell Phones', 'iPhone 12', null, 100);
+insert into product values (3, 'Apple', 'Cell Phones', 'iPhone 11', null, 100);
+insert into product values (1, 'Samsung', 'Cell Phones', 'Galaxy S20', null, 100);
+insert into product values (2, 'Samsung', 'Cell Phones', 'Galaxy S21', null, 100);
+insert into product values (3, 'Samsung', 'Cell Phones', 'Galaxy S22', null, 100);
+insert into product values (4, 'Samsung', 'TV', 'Neo QLED', null, 1000);
+insert into product values (1, 'LG', 'TV', 'NanoCell', null, 1000);
+insert into product values (1, 'Sony', 'TV', 'Google TV', null, 1000);
+insert into product values (2, 'LG', 'Computers', 'UltraWide Monitor', null, 200);
+insert into product values (1, 'Lenovo', 'Laptops', 'Celeron N4500', null, 300);
+insert into product values (1, 'HP', 'Laptops', 'Qualcomm Snapdragon', null, 300);
+insert into product values (4, 'Apple', 'Tablets', 'iPad Pro', null, 300);
+insert into product values (1, 'Sonos', 'Speakers', 'Roam Smart Portable', null, 200);
+insert into product values (1, 'Sonance', 'Speakers', 'Outdoor Rock', null, 300);
+insert into product values (1, 'Beats by Dr. Dre', 'Headphones', 'Powerbeats Pro', null, 200);
+insert into product values (1, 'Canon', 'Cameras', 'EOS R6', null, 2000);
+insert into product values (1, 'Bowflex', 'Fitness', 'SelectTech 552', null, 500);
+insert into product values (1, 'Omron', 'Health', 'Digital Scale', null, 50);
+insert into product values (1, 'Owlet', 'Baby Care', 'Video Baby Monitor', null, 200);
+insert into product values (1, 'Bella', 'Kitchen Appliances', 'Egg Cooker', null, 50);
+insert into product values (5, 'Samsung', 'Laundry', 'Smart Dial Washer', null, 200);
+insert into product values (1, 'Lego', 'Toys', 'Classic 10692', null, 50);
+insert into product values (1, 'Nintendo', 'Video Games', 'Leg Strap', null, 50);
+
+insert into store (store_ID, region) values (1, 'California');
+insert into store (store_ID, region) values (2, 'California');
+insert into store (store_ID, region) values (3, 'California');
+insert into store (store_ID, region) values (1, 'New York');
+insert into store (store_ID, region) values (2, 'New York');
+insert into store (store_ID, region) values (3, 'New York');
+insert into store (store_ID, region) values (1, 'Nevada');
+insert into store (store_ID, region) values (2, 'Nevada');
+insert into store (store_ID, region) values (3, 'Nevada');
+insert into store (store_ID, region) values (1, 'Florida');
+insert into store (store_ID, region) values (2, 'Florida');
+insert into store (store_ID, region) values (3, 'Florida');
+insert into store (store_ID, region) values (1, 'Washington');
+insert into store (store_ID, region) values (2, 'Washington');
+insert into store (store_ID, region) values (3, 'Washington');
+
+insert into warehouse (warehouse_ID) values (1);
+insert into warehouse (warehouse_ID) values (2);
+insert into warehouse (warehouse_ID) values (3);
+insert into warehouse (warehouse_ID) values (4);
+insert into warehouse (warehouse_ID) values (5);
+insert into warehouse (warehouse_ID) values (6);
+insert into warehouse (warehouse_ID) values (7);
+insert into warehouse (warehouse_ID) values (8);
+insert into warehouse (warehouse_ID) values (9);
+insert into warehouse (warehouse_ID) values (10);
+insert into warehouse (warehouse_ID) values (11);
+insert into warehouse (warehouse_ID) values (12);
+insert into warehouse (warehouse_ID) values (13);
+insert into warehouse (warehouse_ID) values (14);
+insert into warehouse (warehouse_ID) values (15);
+
+insert into offline_inventory values (1, 'California', 1, 'Apple', 0);
+insert into offline_inventory values (1, 'California', 2, 'Apple', 10);
+insert into offline_inventory values (1, 'California', 3, 'Apple', 10);
+insert into offline_inventory values (2, 'California', 1, 'Samsung', 0);
+insert into offline_inventory values (2, 'California', 2, 'Samsung', 10);
+insert into offline_inventory values (2, 'California', 3, 'Samsung', 10);
+insert into offline_inventory values (3, 'California', 4, 'Samsung', 0);
+insert into offline_inventory values (3, 'California', 1, 'LG', 5);
+insert into offline_inventory values (3, 'California', 1, 'Sony', 5);
+insert into offline_inventory values (1, 'New York', 2, 'LG', 20);
+insert into offline_inventory values (1, 'New York', 1, 'Lenovo', 20);
+insert into offline_inventory values (1, 'New York', 1, 'HP', 20);
+insert into offline_inventory values (2, 'New York', 4, 'Apple', 20);
+insert into offline_inventory values (2, 'New York', 1, 'Sonos', 20);
+insert into offline_inventory values (2, 'New York', 1, 'Sonance', 20);
+insert into offline_inventory values (3, 'New York', 1, 'Beats by Dr. Dre', 30);
+insert into offline_inventory values (3, 'New York', 1, 'Canon', 10);
+insert into offline_inventory values (3, 'New York', 1, 'Bowflex', 20);
+insert into offline_inventory values (1, 'Nevada', 1, 'Omron', 30);
+insert into offline_inventory values (1, 'Nevada', 1, 'Owlet', 20);
+insert into offline_inventory values (1, 'Nevada', 1, 'Bella', 30);
+insert into offline_inventory values (2, 'Nevada', 5, 'Samsung', 10);
+insert into offline_inventory values (2, 'Nevada', 1, 'Lego', 50);
+insert into offline_inventory values (2, 'Nevada', 1, 'Nintendo', 50);
+insert into offline_inventory values (3, 'Nevada', 1, 'Apple', 10);
+insert into offline_inventory values (3, 'Nevada', 2, 'Apple', 10);
+insert into offline_inventory values (3, 'Nevada', 3, 'Apple', 10);
+insert into offline_inventory values (1, 'Florida', 1, 'Samsung', 0);
+insert into offline_inventory values (1, 'Florida', 2, 'Samsung', 10);
+insert into offline_inventory values (1, 'Florida', 3, 'Samsung', 10);
+insert into offline_inventory values (2, 'Florida', 4, 'Samsung', 0);
+insert into offline_inventory values (2, 'Florida', 1, 'LG', 5);
+insert into offline_inventory values (2, 'Florida', 1, 'Sony', 5);
+insert into offline_inventory values (3, 'Florida', 2, 'LG', 20);
+insert into offline_inventory values (3, 'Florida', 1, 'Lenovo', 20);
+insert into offline_inventory values (3, 'Florida', 1, 'HP', 20);
+insert into offline_inventory values (1, 'Washington', 4, 'Apple', 20);
+insert into offline_inventory values (1, 'Washington', 1, 'Sonos', 20);
+insert into offline_inventory values (1, 'Washington', 1, 'Sonance', 20);
+insert into offline_inventory values (2, 'Washington', 1, 'Beats by Dr. Dre', 30);
+insert into offline_inventory values (2, 'Washington', 1, 'Canon', 10);
+insert into offline_inventory values (2, 'Washington', 1, 'Bowflex', 20);
+insert into offline_inventory values (3, 'Washington', 1, 'Omron', 30);
+insert into offline_inventory values (3, 'Washington', 1, 'Owlet', 20);
+insert into offline_inventory values (3, 'Washington', 1, 'Bella', 30);
+
+insert into online_inventory values (1, 1, 'Apple', 0);
+insert into online_inventory values (1, 2, 'Apple', 10);
+insert into online_inventory values (1, 3, 'Apple', 10);
+insert into online_inventory values (2, 1, 'Samsung', 0);
+insert into online_inventory values (2, 2, 'Samsung', 10);
+insert into online_inventory values (2, 3, 'Samsung', 10);
+insert into online_inventory values (3, 4, 'Samsung', 0);
+insert into online_inventory values (3, 1, 'LG', 5);
+insert into online_inventory values (3, 1, 'Sony', 5);
+insert into online_inventory values (4, 2, 'LG', 20);
+insert into online_inventory values (4, 1, 'Lenovo', 20);
+insert into online_inventory values (4, 1, 'HP', 20);
+insert into online_inventory values (5, 4, 'Apple', 20);
+insert into online_inventory values (5, 1, 'Sonos', 20);
+insert into online_inventory values (5, 1, 'Sonance', 20);
+insert into online_inventory values (6, 1, 'Beats by Dr. Dre', 30);
+insert into online_inventory values (6, 1, 'Canon', 10);
+insert into online_inventory values (6, 1, 'Bowflex', 20);
+insert into online_inventory values (7, 1, 'Omron', 30);
+insert into online_inventory values (7, 1, 'Owlet', 20);
+insert into online_inventory values (7, 1, 'Bella', 30);
+insert into online_inventory values (8, 5, 'Samsung', 10);
+insert into online_inventory values (8, 1, 'Lego', 50);
+insert into online_inventory values (8, 1, 'Nintendo', 50);
+insert into online_inventory values (9, 1, 'Apple', 10);
+insert into online_inventory values (9, 2, 'Apple', 10);
+insert into online_inventory values (9, 3, 'Apple', 10);
+insert into online_inventory values (10, 1, 'Samsung', 0);
+insert into online_inventory values (10, 2, 'Samsung', 10);
+insert into online_inventory values (10, 3, 'Samsung', 10);
+insert into online_inventory values (11, 4, 'Samsung', 0);
+insert into online_inventory values (11, 1, 'LG', 5);
+insert into online_inventory values (11, 1, 'Sony', 5);
+insert into online_inventory values (12, 2, 'LG', 20);
+insert into online_inventory values (12, 1, 'Lenovo', 20);
+insert into online_inventory values (12, 1, 'HP', 20);
+insert into online_inventory values (13, 4, 'Apple', 20);
+insert into online_inventory values (13, 1, 'Sonos', 20);
+insert into online_inventory values (13, 1, 'Sonance', 20);
+insert into online_inventory values (14, 1, 'Beats by Dr. Dre', 30);
+insert into online_inventory values (14, 1, 'Canon', 10);
+insert into online_inventory values (14, 1, 'Bowflex', 20);
+insert into online_inventory values (15, 1, 'Omron', 30);
+insert into online_inventory values (15, 1, 'Owlet', 20);
+insert into online_inventory values (15, 1, 'Bella', 30);
+
+insert into offline_reorder values (1, 3, 'Florida', 2, 'LG', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (2, 3, 'Florida', 1, 'Lenovo', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (3, 3, 'Florida', 1, 'HP', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (4, 1, 'Washington', 4, 'Apple', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (5, 1, 'Washington', 1, 'Sonos', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (6, 1, 'Washington', 1, 'Sonance', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (7, 2, 'Washington', 1, 'Beats by Dr. Dre', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (8, 2, 'Washington', 1, 'Canon', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (9, 2, 'Washington', 1, 'Bowflex', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (10, 3, 'Washington', 1, 'Omron', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into offline_reorder values (11, 1, 'California', 1, 'Apple', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into offline_reorder values (12, 2, 'California', 1, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into offline_reorder values (13, 3, 'California', 4, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into offline_reorder values (14, 1, 'Florida', 1, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into offline_reorder values (15, 2, 'Florida', 4, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+
+insert into online_reorder values (1, 4, 2, 'LG', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (2, 4, 1, 'Lenovo', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (3, 4, 1, 'HP', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (4, 5, 4, 'Apple', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (5, 5, 1, 'Sonos', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (6, 5, 1, 'Sonance', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (7, 6, 1, 'Beats by Dr. Dre', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (8, 6, 1, 'Canon', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (9, 6, 1, 'Bowflex', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (10, 7, 1, 'Omron', 10, '2021-01-01', '2021-01-08', '2021-01-08', 1, null);
+insert into online_reorder values (11, 1, 1, 'Apple', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into online_reorder values (12, 2, 1, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into online_reorder values (15, 3, 4, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into online_reorder values (14, 10, 1, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+insert into online_reorder values (15, 11, 4, 'Samsung', 10, '2022-01-01', '2022-01-08', null, 0, null);
+
+insert into purchase values ('2021-05-01', 1, 1, 600);
+insert into purchase values ('2021-05-01', 2, 2, 600);
+insert into purchase values ('2021-05-01', 3, 3, 6000);
+insert into purchase values ('2021-05-01', 4, 4, 1500);
+insert into purchase values ('2021-05-01', 5, 5, 1600);
+insert into purchase values ('2021-05-01', 6, 6, 5100);
+insert into purchase values ('2021-05-01', 7, 7, 600);
+insert into purchase values ('2021-05-01', 8, 8, 750);
+insert into purchase values ('2021-05-01', 9, 9, 1500);
+insert into purchase values ('2021-05-01', 10, 10, 1500);
+insert into purchase values ('2021-05-01', 11, 11, 15000);
+insert into purchase values ('2021-05-01', 12, 12, 4100);
+insert into purchase values ('2021-05-01', 13, 13, 3900);
+insert into purchase values ('2021-05-01', 14, 14, 4500);
+insert into purchase values ('2022-05-01', 1, 15, 1650);
+insert into purchase values ('2021-05-02', 1, 16, 1700);
+insert into purchase values ('2021-05-02', 2, 17, 1600);
+insert into purchase values ('2021-05-02', 3, 18, 5700);
+insert into purchase values ('2021-05-02', 4, 19, 600);
+
+insert into sales_data values (1, '2021-05-01', 1, 1, 1, 'Apple', 3, 300, 1, null, null);
+insert into sales_data values (2, '2021-05-01', 1, 1, 2, 'Apple', 2, 200, 1, null, null);
+insert into sales_data values (3, '2021-05-01', 1, 1, 3, 'Apple', 1, 100, 1, null, null);
+insert into sales_data values (4, '2021-05-01', 2, 2, 1, 'SamSung', 3, 300, 2, null, null);
+insert into sales_data values (5, '2021-05-01', 2, 2, 2, 'SamSung', 2, 200, 2, null, null);
+insert into sales_data values (6, '2021-05-01', 2, 2, 3, 'SamSung', 1, 100, 2, null, null);
+insert into sales_data values (7, '2021-05-01', 3, 3, 4, 'SamSung', 3, 3000, 3, null, null);
+insert into sales_data values (8, '2021-05-01', 3, 3, 1, 'LG', 2, 2000, 3, null, null);
+insert into sales_data values (9, '2021-05-01', 3, 3, 1, 'Sony', 1, 1000, 3, null, null);
+insert into sales_data values (10, '2021-05-01', 4, 4, 2, 'LG', 3, 600, 4, null, null);
+insert into sales_data values (11, '2021-05-01', 4, 4, 1, 'Lenovo', 2, 600, 4, null, null);
+insert into sales_data values (12, '2021-05-01', 4, 4, 1, 'HP', 1, 300, 4, null, null);
+insert into sales_data values (13, '2021-05-01', 5, 5, 4, 'Apple', 3, 900, 5, null, null);
+insert into sales_data values (14, '2021-05-01', 5, 5, 1, 'Sonos', 2, 400, 5, null, null);
+insert into sales_data values (15, '2021-05-01', 5, 5, 1, 'Sonance', 1, 300, 5, null, null);
+insert into sales_data values (16, '2021-05-01', 6, 6, 1, 'Beats by Dr. Dre', 3, 600, 6, null, null);
+insert into sales_data values (17, '2021-05-01', 6, 6, 1, 'Canon', 2, 4000, 6, null, null);
+insert into sales_data values (18, '2021-05-01', 6, 6, 1, 'Bowflex', 1, 500, 6, null, null);
+insert into sales_data values (19, '2021-05-01', 7, 7, 1, 'Omron', 3, 150, 7, null, null);
+insert into sales_data values (20, '2021-05-01', 7, 7, 1, 'Owlet', 2, 400, 7, null, null);
+insert into sales_data values (21, '2021-05-01', 7, 7, 1, 'Bella', 1, 50, 7, null, null);
+insert into sales_data values (22, '2021-05-01', 8, 8, 4, 'Samsung', 3, 600, 8, null, null);
+insert into sales_data values (23, '2021-05-01', 8, 8, 1, 'Lego', 2, 100, 8, null, null);
+insert into sales_data values (24, '2021-05-01', 8, 8, 1, 'Nintendo', 1, 50, 8, null, null);
+insert into sales_data values (25, '2021-05-01', 9, 9, 1, 'Apple', 4, 400, 9, null, null);
+insert into sales_data values (26, '2021-05-01', 9, 9, 2, 'Apple', 6, 600, 9, null, null);
+insert into sales_data values (27, '2021-05-01', 9, 9, 3, 'Apple', 5, 500, 9, null, null);
+insert into sales_data values (28, '2021-05-01', 10, 10, 1, 'Samsung', 4, 400, 10, null, null);
+insert into sales_data values (29, '2021-05-01', 10, 10, 2, 'Samsung', 6, 600, 10, null, null);
+insert into sales_data values (30, '2021-05-01', 10, 10, 3, 'Samsung', 5, 500, 10, null, null);
+insert into sales_data values (31, '2021-05-01', 11, 11, 4, 'Samsung', 4, 4000, 11, null, null);
+insert into sales_data values (32, '2021-05-01', 11, 11, 1, 'LG', 6, 5000, 11, null, null);
+insert into sales_data values (33, '2021-05-01', 11, 11, 1, 'Sony', 5, 6000, 11, null, null);
+insert into sales_data values (34, '2021-05-01', 12, 12, 2, 'LG', 4, 800, 12, null, null);
+insert into sales_data values (35, '2021-05-01', 12, 12, 1, 'Lenovo', 6, 1800, 12, null, null);
+insert into sales_data values (36, '2021-05-01', 12, 12, 1, 'HP', 5, 1500, 12, null, null);
+insert into sales_data values (37, '2021-05-01', 13, 13, 4, 'Apple', 4, 1200, 13, null, null);
+insert into sales_data values (38, '2021-05-01', 13, 13, 1, 'Sonos', 6, 1200, 13, null, null);
+insert into sales_data values (39, '2021-05-01', 13, 13, 1, 'Sonance', 5, 1500, 13, null, null);
+insert into sales_data values (40, '2021-05-01', 14, 14, 1, 'Beats by Dr. Dre', 4, 800, 14, null, null);
+insert into sales_data values (41, '2021-05-01', 14, 14, 1, 'Canon', 6, 1200, 14, null, null);
+insert into sales_data values (42, '2021-05-01', 14, 14, 1, 'Bowflex', 5, 2500, 14, null, null);
+insert into sales_data values (43, '2022-05-01', 1, 15, 1, 'Omron', 4, 200, 15, null, null);
+insert into sales_data values (44, '2022-05-01', 1, 15, 1, 'Owlet', 6, 1200, 15, null, null);
+insert into sales_data values (45, '2022-05-01', 1, 15, 1, 'Bella', 5, 250, 15, null, null);
+insert into sales_data values (46, '2021-05-02', 1, 16, 2, 'LG', 1, 200, null, 3, 'Florida');
+insert into sales_data values (47, '2021-05-02', 1, 16, 1, 'Lenovo', 2, 600, null, 3, 'Florida');
+insert into sales_data values (48, '2021-05-02', 1, 16, 1, 'HP', 3, 900, null, 3, 'Florida');
+insert into sales_data values (49, '2021-05-02', 2, 17, 4, 'Apple', 1, 300, null, 1, 'Washington');
+insert into sales_data values (50, '2021-05-02', 2, 17, 1, 'Sonos', 2, 400, null, 1, 'Washington');
+insert into sales_data values (51, '2021-05-02', 2, 17, 1, 'Sonance', 3, 900, null, 1, 'Washington');
+insert into sales_data values (52, '2021-05-02', 3, 18, 1, 'Beats by Dr. Dre', 1, 200, null, 2, 'Washington');
+insert into sales_data values (53, '2021-05-02', 3, 18, 1, 'Canon', 2, 4000, null, 2, 'Washington');
+insert into sales_data values (54, '2021-05-02', 3, 18, 1, 'Bowflex', 3, 1500, null, 2, 'Washington');
+insert into sales_data values (55, '2021-05-02', 4, 19, 1, 'Omron', 1, 50, null, 3, 'Washington');
+insert into sales_data values (56, '2021-05-02', 4, 19, 1, 'Owlet', 2, 400, null, 3, 'Washington');
+insert into sales_data values (57, '2021-05-02', 4, 19, 1, 'Bella', 3, 150, null, 3, 'Washington');
+
+insert into shipping_company(company_name) values ('USPS');
+insert into shipping_company(company_name) values ('UPS');
+insert into shipping_company(company_name) values ('FedEx');
+insert into shipping_company(company_name) values ('DHL');
+insert into shipping_company(company_name) values ('UPS Store');
+insert into shipping_company(company_name) values ('OnTrac');
+insert into shipping_company(company_name) values ('Target Corporation');
+insert into shipping_company(company_name) values ('Pitney Bowes');
+insert into shipping_company(company_name) values ('TNT');
+insert into shipping_company(company_name) values ('UUUU');
+insert into shipping_company(company_name) values ('SSSS');
+insert into shipping_company(company_name) values ('PPPP');
+insert into shipping_company(company_name) values ('LLLL');
+insert into shipping_company(company_name) values ('YYYY');
+insert into shipping_company(company_name) values ('ZZZZ');
+
+insert into delivery values ('01', 'USPS', '2021-05-01', 1, 1, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'UPS', '2021-05-01', 2, 2, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'FedEx', '2021-05-01', 3, 3, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'DHL', '2021-05-01', 4, 4, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'UPS Store', '2021-05-01', 5, 5, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'OnTrac', '2021-05-01', 6, 6, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'Target Corporation', '2021-05-01', 7, 7, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'Pitney Bowes', '2021-05-01', 8, 8, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'TNT', '2021-05-01', 9, 9, '2021-05-01', '2021-05-03', '2021-05-03', 'B101 street', 1, null, 'Kim');
+insert into delivery values ('01', 'UUUU', '2021-05-01', 10, 10, '2021-05-01', '2021-05-03', '2021-05-05', 'B101 street', 2, null, 'Kim');
+insert into delivery values ('01', 'SSSS', '2021-05-01', 11, 11, '2021-05-01', '2021-05-03', '2021-05-05', 'B101 street', 2, null, 'Kim');
+insert into delivery values ('01', 'PPPP', '2021-05-01', 12, 12, '2021-05-01', '2021-05-03', '2021-05-05', 'B101 street', 2, null, 'Kim');
+insert into delivery values ('01', 'LLLL', '2021-05-01', 13, 13, '2021-05-01', '2021-05-03', '2021-05-05', 'B101 street', 2, null, 'Kim');
+insert into delivery values ('01', 'YYYY', '2021-05-01', 14, 14, '2021-05-01', '2021-05-03', '2021-05-05', 'B101 street', 2, null, 'Kim');
+insert into delivery values ('X', 'USPS', '2022-05-01', 1, 15, '2022-05-01', '2022-05-03', null, 'B101 street', 3, 'accident', null);
+
+insert into contract_of_payment values ('11111', 'SSS', '2021-05-01', 1, 1);
+insert into contract_of_payment values ('22222', 'SSS', '2021-05-01', 2, 2);
+insert into contract_of_payment values ('33333', 'SSS', '2021-05-01', 3, 3);
+insert into contract_of_payment values ('44444', 'SSS', '2021-05-01', 4, 4);
+insert into contract_of_payment values ('55555', 'SSS', '2021-05-01', 5, 5);
+insert into contract_of_payment values ('66666', 'SSS', '2021-05-01', 6, 6);
+insert into contract_of_payment values ('77777', 'SSS', '2021-05-01', 7, 7);
+insert into contract_of_payment values ('88888', 'SSS', '2021-05-01', 8, 8);
+insert into contract_of_payment values ('99999', 'SSS', '2021-05-01', 9, 9);
+insert into contract_of_payment values ('10101', 'SSS', '2021-05-01', 10, 10);
+insert into contract_of_payment values ('10001', 'SSS', '2021-05-01', 11, 11);
+insert into contract_of_payment values ('12121', 'SSS', '2021-05-01', 12, 12);
+insert into contract_of_payment values ('13131', 'SSS', '2021-05-01', 13, 13);
+insert into contract_of_payment values ('14141', 'SSS', '2021-05-01', 14, 14);
+insert into contract_of_payment values ('15151', 'SSS', '2022-05-01', 1, 15);
+
+insert into bill values (1, '11111', 'SSS', '2021-05-01', 1, 1, '2021-05-30', '2021-06-30', 300, 600);
+insert into bill values (2, '11111', 'SSS', '2021-05-01', 1, 1, '2021-06-30', '2021-06-30', 300, 600);
+insert into bill values (1, '22222', 'SSS', '2021-05-01', 2, 2, '2021-05-30', '2021-06-30', 300, 600);
+insert into bill values (2, '22222', 'SSS', '2021-05-01', 2, 2, '2021-06-30', '2021-06-30', 300, 600);
+insert into bill values (1, '33333', 'SSS', '2021-05-01', 3, 3, '2021-05-30', '2021-06-30', 3000, 6000);
+insert into bill values (2, '33333', 'SSS', '2021-05-01', 3, 3, '2021-06-30', '2021-06-30', 3000, 6000);
+insert into bill values (1, '44444', 'SSS', '2021-05-01', 4, 4, '2021-05-30', '2021-06-30', 750, 1500);
+insert into bill values (2, '44444', 'SSS', '2021-05-01', 4, 4, '2021-06-30', '2021-06-30', 750, 1500);
+insert into bill values (1, '55555', 'SSS', '2021-05-01', 5, 5, '2021-05-30', '2021-06-30', 800, 1600);
+insert into bill values (2, '55555', 'SSS', '2021-05-01', 5, 5, '2021-06-30', '2021-06-30', 800, 1600);
+insert into bill values (1, '66666', 'SSS', '2021-05-01', 6, 6, '2021-05-30', '2021-06-30', 2550, 5100);
+insert into bill values (2, '66666', 'SSS', '2021-05-01', 6, 6, '2021-06-30', '2021-06-30', 2550, 5100);
+insert into bill values (1, '77777', 'SSS', '2021-05-01', 7, 7, '2021-05-30', '2021-06-30', 300, 600);
+insert into bill values (2, '77777', 'SSS', '2021-05-01', 7, 7, '2021-06-30', '2021-06-30', 300, 600);
+insert into bill values (1, '88888', 'SSS', '2021-05-01', 8, 8, '2021-05-30', '2021-06-30', 375, 750);
+insert into bill values (2, '88888', 'SSS', '2021-05-01', 8, 8, '2021-06-30', '2021-06-30', 375, 750);
+insert into bill values (1, '99999', 'SSS', '2021-05-01', 9, 9, '2021-05-30', '2021-06-30', 750, 1500);
+insert into bill values (2, '99999', 'SSS', '2021-05-01', 9, 9, '2021-06-30', '2021-06-30', 750, 1500);
+insert into bill values (1, '10101', 'SSS', '2021-05-01', 10, 10, '2021-05-30', '2021-06-30', 750, 1500);
+insert into bill values (2, '10101', 'SSS', '2021-05-01', 10, 10, '2021-06-30', '2021-06-30', 750, 1500);
+insert into bill values (1, '10001', 'SSS', '2021-05-01', 11, 11, '2021-05-30', '2021-06-30', 7500, 15000);
+insert into bill values (2, '10001', 'SSS', '2021-05-01', 11, 11, '2021-06-30', '2021-06-30', 7500, 15000);
+insert into bill values (1, '12121', 'SSS', '2021-05-01', 12, 12, '2021-05-30', '2021-06-30', 2050, 4100);
+insert into bill values (2, '12121', 'SSS', '2021-05-01', 12, 12, '2021-06-30', '2021-06-30', 2050, 4100);
+insert into bill values (1, '13131', 'SSS', '2021-05-01', 13, 13, '2021-05-30', '2021-06-30', 1975, 3900);
+insert into bill values (2, '13131', 'SSS', '2021-05-01', 13, 13, '2021-06-30', '2021-06-30', 1975, 3900);
+insert into bill values (1, '14141', 'SSS', '2021-05-01', 14, 14, '2021-05-30', '2021-06-30', 2250, 4500);
+insert into bill values (2, '14141', 'SSS', '2021-05-01', 14, 14, '2021-06-30', '2021-06-30', 2250, 4500);
+insert into bill values (1, '15151', 'SSS', '2022-05-01', 1, 15, '2022-05-30', '2022-06-30', 825, 1650);
+
+delete from sales_data;
+delete from offline_reorder;
+delete from online_reorder;
+delete from online_inventory;
+delete from offline_inventory;
+delete from warehouse;
+delete from store;
+delete from product;
+delete from manufacturer;
+delete from product_type;
+delete from delivery;
+delete from shipping_company;
+delete from bill;
+delete from contract_of_payment;
+delete from card;
+delete from online_subscription;
+delete from bank_account;
+delete from purchase;
+delete from customer;
+
+drop table sales_data;
+drop table offline_reorder;
+drop table online_reorder;
+drop table online_inventory;
+drop table offline_inventory;
+drop table warehouse;
+drop table store;
+drop table product;
+drop table manufacturer;
+drop table product_type;
+drop table delivery;
+drop table shipping_company;
+drop table bill;
+drop table contract_of_payment;
+drop table card;
+drop table online_subscription;
+drop table bank_account;
+drop table purchase;
+drop table customer;
