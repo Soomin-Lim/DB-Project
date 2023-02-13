@@ -22,14 +22,14 @@ window10 64bit, i5-8265U, Intel(R) UHD Graphics 620, visual studio 2019 – Debu
 
 ------제출 파일 전체 구성도------
 [DBproject2] ---- 20191637.png
-                      |_ 20191637.erwin
-                      |_ [project2]20191637.pdf
-	        |_ 20191637.zip ---- Project2 폴더 ---- 20191637.cpp
-                  		       |_ Project2.sln       |_ 20191637.txt
-                  		       |_ README.txt	    |_ libmysql.dll
-					    |_ Project2.vcxproj
-					    |_ Project2.vcxproj.filters
-					    |_ Project2.vcxproj.user
+               |_ 20191637.erwin
+               |_ [project2]20191637.pdf
+	       |_ 20191637.zip ---- Project2 폴더 ---- 20191637.cpp
+                  		 |_ Project2.sln    |_ 20191637.txt
+                  		 |_ README.txt      |_ libmysql.dll
+					    	    |_ Project2.vcxproj
+					    	    |_ Project2.vcxproj.filters
+					    	    |_ Project2.vcxproj.user
 
 ------프로그램 사용 전 주의사항----------
 "mysql.h"를 포함하기 위해
