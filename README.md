@@ -13,4 +13,4 @@ database that underlies company operations. Unfortunately, the manager assigned 
 database design proposals is not very computer literate and is unable to provide a very
 detailed specification at the technical level.
 
-자세한 설명은 각 프로젝트 폴더의 notice 파일(`project1(spring2022)`, `2022project2` 파일)에 있습니다.
+각 프로젝트의 자세한 설명은 각 프로젝트 폴더의 notice 파일(`project1(spring2022)`, `2022project2` 파일)에 있습니다.
