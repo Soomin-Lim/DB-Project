@@ -37,7 +37,7 @@ The goal of this project is to provide a realistic experience in the conceptual 
 │   │     ├─ Project2.sln
 │   │     ├─ Project2
 │   │     │     ├─ 20191637.cpp C++ 코드
-│   │     │     ├─ 20191637.txt 데이터베이스 테이블 CRUD 파일
+│   │     │     ├─ 20191637.txt 데이터베이스의 테이블 생성 및 삭제와 데이터를 추가하는 CRUD 파일
 │   │     │     ├─ Project2.vcxproj
 │   │     │     ├─ Project2.vcxproj.filters
 │   │     │     ├─ Project2.vcxproj.user
