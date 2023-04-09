@@ -33,12 +33,12 @@ The goal of this project is to provide a realistic experience in the conceptual 
 │   └── project1(spring2022).pdf 프로젝트 notice
 │   └── project1_ERD.png ERD
 ├── project2
-│   └── code C++ 애플리케이션 프로그램
+│   └── code 애플리케이션 프로그램
 │   │     ├─ Project2.sln
 │   │     ├─ Project2
-│   │     │     ├─ 20191637.cpp
-│   │     │     ├─ 20191637.txt
-│   │     │     ├─ Project2.vcxproj
+│   │     │     ├─ 20191637.cpp C++ 코드
+│   │     │     ├─ 20191637.txt 데이터베이스 테이블 CRUD 파일
+│   │     │     ├─ Project2.vcxproj
 │   │     │     ├─ Project2.vcxproj.filters
 │   │     │     ├─ Project2.vcxproj.user
 │   │     │     └─ libmysql.dll
