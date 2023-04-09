@@ -17,13 +17,13 @@ The goal of this project is to provide a realistic experience in the conceptual 
 ├── project1
 │   ├── 20191637.erwin 관계 스키마 다이어그램
 │   ├── [project1]20191637.pdf 보고서
-│   └── project1(spring2022).pdf 프로젝트 공지
+│   └── project1(spring2022).pdf 프로젝트 notice
 │   └── project1_ERD.png ERD
 ├── project2
 │   ├── code C++ 애플리케이션 프로그램
 │   ├── 20191637.erwin 물리 스키마 다이어그램
 │   ├── 20191637.png 정규화된 관계 스키마 다이어그램
-│   └── 2022project2.pdf 프로젝트 공지
+│   └── 2022project2.pdf 프로젝트 notice
 │   └── [project2]20191637.pdf 보고서
 └── README.md
 ``` 
