@@ -12,6 +12,10 @@ The goal of this project is to provide a realistic experience in the conceptual 
 
 각 프로젝트의 자세한 설명은 각 프로젝트 폴더의 notice 파일(`project1(spring2022)`, `2022project2` 파일)에 있습니다.
 
+## 프로젝트 산출물
+- 1번째 프로젝트: ERD, 관계 스키마 다이어그램, 보고서
+- 2번째 프로젝트: 정규화된 관계 스키마 다이어그램, 물리적 스키마 다이어그램, C++ 애플리케이션 프로그램, 보고서
+
 ## 프로젝트 구조
 ```bash
 ├── project1
@@ -20,11 +24,19 @@ The goal of this project is to provide a realistic experience in the conceptual 
 │   └── project1(spring2022).pdf 프로젝트 notice
 │   └── project1_ERD.png ERD
 ├── project2
-│   ├── code C++ 애플리케이션 프로그램
+│   └── code C++ 애플리케이션 프로그램
+│   │     ├─ Project2.sln
+│   │     ├─ Project2
+│   │     │     ├─ 20191637.cpp
+│   │     │     ├─ 20191637.txt
+│   │     │     ├─ Project2.vcxproj
+│   │     │     ├─ Project2.vcxproj.filters
+│   │     │     ├─ Project2.vcxproj.user
+│   │     │     └─ libmysql.dll
+│   │     └─ README.txt 애플리케이션 프로그램 README
 │   ├── 20191637.erwin 물리 스키마 다이어그램
 │   ├── 20191637.png 정규화된 관계 스키마 다이어그램
 │   └── 2022project2.pdf 프로젝트 notice
 │   └── [project2]20191637.pdf 보고서
 └── README.md
 ``` 
-
